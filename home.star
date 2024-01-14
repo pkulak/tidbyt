@@ -45,8 +45,8 @@ def get_bus_row(key, route):
         children=[
             render.Circle(
                 color="#8B95C9",
-                diameter=14,
-                child=render.Text(str(route), color="#000"),
+                diameter=13,
+                child=render.Text(str(route), color="#000", font="tom-thumb"),
             ),
             render.Text(" " + get_bus(key, route), color=get_bus_color(key, route))
         ]
