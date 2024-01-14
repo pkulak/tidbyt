@@ -17,24 +17,8 @@ def main(config):
                     expanded=True,
                     main_align="space_around",
                     children=[
-                        render.Row(
-                            children=[
-                                render.Text("70: ", color="#84DCC6"),
-                                render.Text(get_bus(key, 70), color=get_bus_color(key, 70))
-                            ]
-                        ),
-                        render.Row(
-                            children=[
-                                render.Text("17: ", color="#84DCC6"),
-                                render.Text(get_bus(key, 17), color=get_bus_color(key, 17))
-                            ]
-                        ),
-                        render.Row(
-                            children=[
-                                render.Text("72: ", color="#84DCC6"),
-                                render.Text(get_bus(key, 72), color=get_bus_color(key, 72))
-                            ]
-                        ),
+                        get_bus_row(key, 70),
+                        get_bus_row(key, 17),
                     ]
                 ),
                 render.Column(
@@ -42,7 +26,7 @@ def main(config):
                     main_align="space_around",
                     children=[
                         get_clock(),
-                        render.Text(str(get_temp(key)) + "°", color="#8b95c9"),
+                        render.Text(str(get_temp(key)) + "°", color="#ACD7EC"),
                         get_last_row(key),
                     ]
                 )
@@ -54,6 +38,19 @@ def get_state(key, entity):
     url = "http://ha.home/api/states/" + entity
     headers = {'Authorization': 'Bearer ' + key}
     return http.get(url, headers=headers).json()
+
+def get_bus_row(key, route):
+    return render.Row(
+        cross_align="center",
+        children=[
+            render.Circle(
+                color="#8B95C9",
+                diameter=14,
+                child=render.Text(str(route), color="#000"),
+            ),
+            render.Text(" " + get_bus(key, route), color=get_bus_color(key, route))
+        ]
+    )
 
 def get_bus(key, route):
     res = get_state(key, "timer.bus_" + str(route))
@@ -76,7 +73,7 @@ def get_bus_color(key, route):
     if res['state'] == 'off':
         return "#D6EDFF"
     else:
-        return "#444"
+        return "#555"
 
 def get_temp(key):
     res = get_state(key, "sensor.temperature")
