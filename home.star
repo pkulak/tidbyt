@@ -7,7 +7,7 @@ def main(config):
     key = config.get('ha_key')
 
     return render.Root(
-        delay = 60,
+        delay = 8000,
         max_age = 120,
         child = render.Row(
             expanded=True,
@@ -70,7 +70,10 @@ def get_calendar(key):
         ampm = 'PM'
         hour = hour - 12
     
-    return '{}:{}{} {}'.format(hour, minute, ampm, event)
+    if minute == 0:
+        return '{}{} {}'.format(hour, ampm, event)
+    else:
+        return '{}:{} {}'.format(hour, minute, event)
 
 def get_bus_row(key, route):
     return render.Row(
@@ -144,9 +147,19 @@ def get_last_row(key):
     elif rain > 0:
         child = render.Text(str(rain) + "mm", color="#478978")
     else:
-        child = render.Marquee(
-            width=24,
-            child=render.Text(get_calendar(key), color="#478978")
+        cal = get_calendar(key)
+
+        if cal == '':
+            return render.Text("None", color="#555")
+
+        time = cal.split(' ', 1)[0]
+        event = cal.split(' ', 1)[1]
+
+        child = render.Animation(
+            children=[
+                render.WrappedText(time + ' ', width=24, color="#84DCC6"),
+                render.WrappedText(event, width=24, height=8, color="#478978")
+            ]
         )
 
     return child
