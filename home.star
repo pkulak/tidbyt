@@ -7,7 +7,7 @@ def main(config):
     key = config.get('ha_key')
 
     return render.Root(
-        delay = 8000,
+        delay = 5000,
         max_age = 120,
         child = render.Row(
             expanded=True,
@@ -38,42 +38,6 @@ def get_state(key, entity):
     url = "http://ha.home/api/states/" + entity
     headers = {'Authorization': 'Bearer ' + key}
     return http.get(url, headers=headers).json()
-
-def get_calendar(key):
-    start_time = ''
-    event = ''
-
-    for cal in ['household', 'gwen', 'phil', 'phil_s_work', 'charlie']:
-        res = get_state(key, "calendar." + cal)
-        attrs = res['attributes']
-
-        if 'start_time' not in attrs:
-            continue
-
-        if res['state'] == 'on':
-            return "Now: " + attrs['message']
-
-        if start_time == '' or attrs['start_time'] < start_time:
-            start_time = attrs['start_time']
-            event = attrs['message']
-
-    if start_time == '':
-        return ''
-
-    ampm = 'AM'
-    hour = int(start_time.split(' ')[1].split(':')[0])
-    minute = int(start_time.split(' ')[1].split(':')[1])
-
-    if hour == 12:
-        ampm = 'PM'
-    if hour > 12:
-        ampm = 'PM'
-        hour = hour - 12
-    
-    if minute == 0:
-        return '{}{} {}'.format(hour, ampm, event)
-    else:
-        return '{}:{} {}'.format(hour, minute, event)
 
 def get_bus_row(key, route):
     return render.Row(
@@ -125,6 +89,14 @@ def get_rain(key):
 
     return int(math.round(rain))
 
+def get_co2(key):
+    res = get_state(key, "sensor.awair_bunny_co2")
+    return int(math.round(float(res['state']) / 100))
+
+def get_humidity(key):
+    res = get_state(key, "sensor.awair_bunny_humid")
+    return int(math.round(float(res['state'])))
+
 def get_kw(key):
     res = get_state(key, "sensor.cph50_power_output")
     
@@ -140,6 +112,8 @@ def get_clock():
 def get_last_row(key):
     rain = get_rain(key)
     kw = get_kw(key)
+    co2 = get_co2(key)
+    humidity = get_humidity(key)
     child = None
 
     if kw > 0:
@@ -147,18 +121,10 @@ def get_last_row(key):
     elif rain > 0:
         child = render.Text(str(rain) + "mm", color="#478978")
     else:
-        cal = get_calendar(key)
-
-        if cal == '':
-            return render.Text("None", color="#555")
-
-        time = cal.split(' ', 1)[0]
-        event = cal.split(' ', 1)[1]
-
         child = render.Animation(
-            children=[
-                render.WrappedText(time + ' ', width=24, color="#84DCC6"),
-                render.WrappedText(event, width=24, height=8, color="#478978")
+            children = [
+                render.WrappedText(str(co2) + "co2", width=23, color="#478978"),
+                render.WrappedText(str(humidity) + "%", width=23, color="#478978"),
             ]
         )
 
